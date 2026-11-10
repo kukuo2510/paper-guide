@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>論文逐段導讀</title>
+<style>
+:root {
+  --bg: #f4f6f9; --panel: #ffffff; --ink: #1e293b; --muted: #64748b; --line: #e2e8f0;
+  --teal: #0f766e; --teal-bg: #e6f4f2; --orange: #c2410c; --orange-bg: #fff4ec;
+  --box: rgba(250, 204, 21, 0.14); --box-line: rgba(202, 138, 4, 0.7);
+  --skim: rgba(148, 163, 184, 0.10); --skim-line: rgba(100, 116, 139, 0.55);
+  --box-on: rgba(234, 88, 12, 0.20); --box-on-line: #ea580c;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink);
+  font-family: "Microsoft JhengHei", "PingFang TC", "Noto Sans TC", sans-serif; }
+header { position: sticky; top: 0; z-index: 10; background: var(--panel); border-bottom: 1px solid var(--line);
+  padding: 8px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+header h1 { font-size: 16px; margin: 0; white-space: nowrap; }
+.tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+.tab { border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 4px 11px;
+  font: inherit; font-size: 13px; cursor: pointer; color: var(--ink); }
+.tab.on { background: var(--teal); border-color: var(--teal); color: #fff; }
+.tools { display: flex; gap: 6px; align-items: center; margin-left: auto; }
+.tools button, .tools label { font: inherit; font-size: 13px; border: 1px solid var(--line); background: var(--panel);
+  border-radius: 6px; padding: 4px 10px; cursor: pointer; color: var(--ink); }
+.tools label { display: flex; gap: 4px; align-items: center; }
+main { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 18px; padding: 14px 16px; }
+.paper { position: sticky; top: 58px; height: calc(100vh - 72px); overflow: auto; background: var(--panel);
+  border: 1px solid var(--line); border-radius: 8px; }
+.page { position: relative; }
+.page img { width: 100%; display: block; }
+.mark { position: absolute; border: 2px solid var(--box-line); background: var(--box); border-radius: 3px; cursor: pointer; }
+.mark.skim { border-color: var(--skim-line); background: var(--skim); border-style: dashed; }
+.mark.on { background: var(--box-on); border: 3px solid var(--box-on-line); }
+.mark .no { position: absolute; left: -11px; top: -11px; min-width: 22px; height: 22px; padding: 0 4px; border-radius: 11px;
+  background: var(--box-line); color: #fff; font-size: 12px; font-weight: bold; display: grid; place-items: center; }
+.mark.skim .no { background: var(--skim-line); }
+.mark.on .no { background: var(--box-on-line); }
+.notes { display: flex; flex-direction: column; gap: 10px; padding-bottom: 45vh; }
+.intro { background: var(--teal-bg); border-radius: 8px; padding: 12px 16px; }
+.intro h2 { margin: 0 0 6px; font-size: 16px; color: var(--teal); }
+.intro p { margin: 4px 0; font-size: 15px; line-height: 1.7; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; cursor: pointer; }
+.card.on { border-color: var(--box-on-line); box-shadow: 0 0 0 3px rgba(234, 88, 12, .15); }
+.card h3 { margin: 0 0 6px; font-size: 15.5px; display: flex; align-items: center; gap: 8px; }
+.card h3 .no { min-width: 22px; height: 22px; padding: 0 4px; border-radius: 11px; background: var(--box-line); color: #fff; font-size: 12px;
+  display: grid; place-items: center; flex: none; }
+.card.skim h3 .no { background: var(--skim-line); }
+.tag { font-size: 12px; font-weight: normal; padding: 2px 8px; border-radius: 999px; flex: none; }
+.tag.key { background: var(--orange-bg); color: var(--orange); }
+.tag.skim { background: #f1f5f9; color: var(--muted); }
+.card p, .card li { font-size: 15px; line-height: 1.75; margin: 4px 0; }
+.card ul, .card ol { margin: 4px 0; padding-left: 22px; }
+.label { font-weight: bold; color: var(--teal); }
+.q { background: #f8fafc; border-left: 3px solid var(--teal); padding: 6px 10px; margin: 6px 0; border-radius: 0 4px 4px 0; }
+.q .en { font-family: Georgia, "Times New Roman", serif; font-style: italic; color: #334155; font-size: 14.5px; }
+.q .zh { display: block; margin-top: 2px; }
+.ex { background: var(--orange-bg); padding: 6px 10px; border-radius: 4px; margin: 6px 0; }
+.warn { background: #fef2f2; color: #991b1b; padding: 6px 10px; border-radius: 4px; margin: 6px 0; }
+code { font-family: Consolas, monospace; background: #f1f5f9; padding: 0 4px; border-radius: 3px; }
+body.keyonly .card.skim, body.keyonly .mark.skim { display: none; }
+.tr { margin-top: 8px; border-top: 1px dashed var(--line); padding-top: 6px; }
+.tr summary { cursor: pointer; color: var(--teal); font-weight: bold; font-size: 14px; }
+.tr p { color: #334155; }
+body.notr .tr { display: none; }
+@media (max-width: 860px) {
+  main { grid-template-columns: 1fr; }
+  .paper { position: relative; top: 0; height: 60vh; }
+}
+.card .raw { color: #475569; font-size: 14px; line-height: 1.7; margin: 4px 0; font-family: Georgia, "Times New Roman", serif; }
+.kind { font-size: 12px; font-weight: normal; padding: 2px 8px; border-radius: 999px; background: #f1f5f9; color: var(--muted); flex: none; }
+.cont { font-size: 12px; color: var(--muted); }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title">論文逐段導讀</h1>
+  <div class="tabs" id="tabs"></div>
+  <div class="tools">
+    <label><input type="checkbox" id="keyonly">只看重點</label>
+    <label><input type="checkbox" id="showtr" checked>全文翻譯</label>
+    <button id="prev">← 上一段</button><button id="next">下一段 →</button>
+  </div>
+</header>
+<main>
+  <div class="paper" id="paper"><div class="page" id="page"><img id="img" alt="論文頁面"></div></div>
+  <div class="notes" id="notes"></div>
+</main>
+
+<script src="data.js"></script>
+<script>
+// DATA = { title, pages: [{ img, w, h, units: [{ kind, boxes: [[x0,y0,x1,y1]], text, cont, card? }] }] }
+// card（由 LLM 產生，M2）：{ title, what, quote_en, quote_zh, note, critique, key, translation }
+const KIND = { text: '段落', math: '公式', figure: '圖', table: '表', heading: '標題', algorithm: '演算法' };
+const esc = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const paras = (s) => esc(s).split(/\n\n+/).map((x) => `<p>${x.replace(/\n/g, '<br>')}</p>`).join('');
+const isKey = (u) => !u.card || u.card.key;
+
+function cardHtml(u) {
+  const c = u.card;
+  if (!c) return `<p class="raw">${esc(u.text.length > 420 ? u.text.slice(0, 420) + '…' : u.text)}</p>`;
+  return `<p><span class="label">這段在講</span>：${esc(c.what)}</p>` +
+    (c.quote_en ? `<div class="q"><span class="en">“${esc(c.quote_en)}”</span><span class="zh">→ ${esc(c.quote_zh)}</span></div>` : '') +
+    (c.note ? `<div class="ex">${esc(c.note)}</div>` : '') +
+    (c.critique ? `<div class="warn">可以批判：${esc(c.critique)}</div>` : '') +
+    (c.translation ? `<details class="tr" open><summary>全文翻譯</summary>${paras(c.translation)}</details>` : '');
+}
+
+let pi = 0, cur = -1;
+const $ = (id) => document.getElementById(id);
+const P = () => DATA.pages[pi];
+const visible = () => P().units.map((u, i) => i).filter((i) => !document.body.classList.contains('keyonly') || isKey(P().units[i]));
+
+function render() {
+  const pg = P();
+  $('tabs').innerHTML = DATA.pages.map((p, i) => `<button class="tab ${i === pi ? 'on' : ''}" data-i="${i}">p${i + 1}</button>`).join('');
+  $('img').src = pg.img;
+  document.querySelectorAll('.mark').forEach((m) => m.remove());
+  pg.units.forEach((u, i) => {
+    u.boxes.forEach(([x0, y0, x1, y1], j) => {
+      const m = document.createElement('div');
+      m.className = 'mark' + (isKey(u) ? '' : ' skim'); m.dataset.i = i;
+      Object.assign(m.style, { left: x0 / pg.w * 100 + '%', width: (x1 - x0) / pg.w * 100 + '%',
+        top: y0 / pg.h * 100 + '%', height: (y1 - y0) / pg.h * 100 + '%' });
+      m.innerHTML = `<span class="no">${i + 1}${u.boxes.length > 1 ? 'abcd'[j] : ''}</span>`;
+      m.onclick = () => select(i, 'card');
+      $('page').appendChild(m);
+    });
+  });
+  $('notes').innerHTML = pg.units.map((u, i) => `
+    <div class="card ${isKey(u) ? '' : 'skim'}" data-i="${i}"><h3><span class="no">${i + 1}</span>${esc(u.card ? u.card.title : KIND[u.kind])}
+      ${u.card ? `<span class="kind">${KIND[u.kind]}</span><span class="tag ${u.card.key ? 'key' : 'skim'}">${u.card.key ? '重點' : '帶過就好'}</span>` : ''}
+      ${u.cont ? '<span class="cont">（接上頁）</span>' : ''}</h3>${cardHtml(u)}</div>`).join('');
+  document.querySelectorAll('.card').forEach((c) => c.onclick = () => select(+c.dataset.i, 'paper'));
+  document.querySelectorAll('.tr').forEach((d) => d.onclick = (e) => e.stopPropagation());
+  document.querySelectorAll('.tab').forEach((t) => t.onclick = () => go(+t.dataset.i));
+  try { localStorage.setItem(DATA.id + ':page', pi); } catch (e) {}
+}
+
+function go(p) { pi = p; cur = -1; render(); window.scrollTo(0, 0); $('paper').scrollTop = 0; }
+
+function select(i, scrollTarget) {
+  cur = i;
+  document.querySelectorAll('.mark').forEach((m) => m.classList.toggle('on', +m.dataset.i === i));
+  document.querySelectorAll('.card').forEach((c) => c.classList.toggle('on', +c.dataset.i === i));
+  const mark = document.querySelector(`.mark[data-i="${i}"]`);
+  const card = document.querySelector(`.card[data-i="${i}"]`);
+  const paper = $('paper');
+  if (mark) paper.scrollTo({ top: mark.offsetTop - paper.clientHeight * 0.25, behavior: 'smooth' });
+  if (scrollTarget === 'card' && card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function step(d) {
+  let vis = visible();
+  let pos = vis.indexOf(cur);
+  if (pos === -1) pos = d > 0 ? -1 : vis.length;
+  pos += d;
+  if (pos >= vis.length) { if (pi === DATA.pages.length - 1) return; go(pi + 1); vis = visible(); pos = 0; }
+  else if (pos < 0) { if (pi === 0) return; go(pi - 1); vis = visible(); pos = vis.length - 1; }
+  if (vis.length) setTimeout(() => select(vis[pos], 'card'), 30);
+}
+
+$('title').textContent = DATA.title || '論文逐段導讀';
+document.title = DATA.title || '論文逐段導讀';
+$('next').onclick = () => step(1);
+$('prev').onclick = () => step(-1);
+$('keyonly').onchange = (e) => { document.body.classList.toggle('keyonly', e.target.checked); cur = -1; };
+$('showtr').onchange = (e) => { document.body.classList.toggle('notr', !e.target.checked); try { localStorage.setItem('paper-guide:tr', e.target.checked ? 1 : 0); } catch (err) {} };
+try { if (localStorage.getItem('paper-guide:tr') === '0') { $('showtr').checked = false; document.body.classList.add('notr'); } } catch (e) {}
+document.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight') step(1); if (e.key === 'ArrowLeft') step(-1); });
+try { const s = +localStorage.getItem(DATA.id + ':page'); if (s >= 0 && s < DATA.pages.length) pi = s; } catch (e) {}
+render();
+</script>
+</body>
+</html>
