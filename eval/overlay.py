@@ -2,12 +2,12 @@
 
 用法：python -m eval.overlay data/rl-adapter.pdf eval/rl-adapter.boxes.raw.json out/overlay 2 3
 """
-import json
 import os
 import sys
 
 import pymupdf
 
+from eval.gt import gt_units, load_raw
 from paper_guide.extract import load
 from paper_guide.segment import segment
 
@@ -16,15 +16,15 @@ COLORS = {'text': (0, 0.45, 0.4), 'math': (0.75, 0.2, 0), 'figure': (0.2, 0.3, 0
 
 def main(pdf, gt_path, out, pages_wanted):
     os.makedirs(out, exist_ok=True)
-    raw = json.load(open(gt_path, encoding='utf8')) if gt_path != '-' else []
+    gts = gt_units(load_raw(gt_path)) if gt_path != '-' else []
     units, cols = segment(load(pdf))
     doc = pymupdf.open(pdf)
     for pn in pages_wanted:
         p = doc[pn - 1]
-        if pn - 1 < len(raw):
-            for it in raw[pn - 1]:
-                for xr, y0, y1 in it['b']:
-                    p.draw_rect(pymupdf.Rect(xr[0], y0, xr[1], y1), color=(0.5, 0.5, 0.5), dashes='[3] 0', width=0.8)
+        for g in gts:
+            if g['page'] == pn - 1:
+                for x0, y0, x1, y1 in g['boxes']:
+                    p.draw_rect(pymupdf.Rect(x0, y0, x1, y1), color=(0.5, 0.5, 0.5), dashes='[3] 0', width=0.8)
         k = 0
         for u in units:
             if u.page != pn - 1:

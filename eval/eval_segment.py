@@ -8,22 +8,12 @@
 
 用法：python -m eval.eval_segment data/rl-adapter.pdf eval/rl-adapter.boxes.raw.json
 """
-import json
 import sys
 from collections import Counter, defaultdict
 
+from eval.gt import gt_units, load_raw
 from paper_guide.extract import load
 from paper_guide.segment import segment
-
-
-def gt_units(raw):
-    """raw[頁][單位] = {'b': [[[x0, x1], y0, y1], ...], 't': 標題}"""
-    out = []
-    for p, items in enumerate(raw):
-        for i, it in enumerate(items):
-            out.append({'page': p, 'id': f'{p + 1}-{i + 1}', 't': it['t'],
-                        'boxes': [[xr[0], y0, xr[1], y1] for xr, y0, y1 in it['b']]})
-    return out
 
 
 def inside(w, b):
@@ -31,7 +21,7 @@ def inside(w, b):
 
 
 def main(pdf, gt_path, verbose=True):
-    raw = json.load(open(gt_path, encoding='utf8'))
+    raw = load_raw(gt_path)
     gts = gt_units(raw)
     pages = load(pdf)
     units, cols = segment(pages)
