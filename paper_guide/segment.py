@@ -11,7 +11,7 @@ import re
 from collections import Counter
 from dataclasses import dataclass, field
 
-from .extract import body_size
+from .extract import Word, body_size
 
 EQ_NO = re.compile(r'^\(\d+[a-z]?\)$')
 CAPTION = re.compile(r'^(Fig\.|Figure|FIG\.|TABLE|Table)$')
@@ -20,6 +20,7 @@ NUM_HEAD = re.compile(r'^(\d+(\.\d+)*\.?|[A-Z]\.?(\d+)*)$')
 HEADING = re.compile(r'^([IVX]+\.|[A-H]\.|[1-9]\)|APPENDIX|REFERENCES|Appendix|Abstract|Index|Proof|Theorem|Lemma|Algorithm)')
 BULLETS = {'•', '◦', '–', '▪', '∙'}
 SENT_END = re.compile(r'[.:;?!]["”)\]]?$')
+COL_ORDER = {'F': 0, 'L': 1, 'R': 2}  # 跨欄行先、再左欄、右欄
 
 
 @dataclass
@@ -66,8 +67,7 @@ class Unit:
         out = []
         for col, ws in self.parts:
             x0, x1 = cols[col]
-            if col == 'F' or True:
-                x0 = min(x0, min(w.x0 for w in ws)); x1 = max(x1, max(w.x1 for w in ws))
+            x0 = min(x0, min(w.x0 for w in ws)); x1 = max(x1, max(w.x1 for w in ws))
             out.append([round(x0 - 3, 1), round(min(w.y0 for w in ws) - 2, 1),
                         round(x1 + 3, 1), round(max(w.y1 for w in ws) + 2, 1)])
         return out
@@ -321,12 +321,10 @@ def segment(pages):
         for kind, col, group, gb in floats:
             ws = [w for m in group for w in m.words]
             if gb:  # 用不可見的「字」把圖形範圍帶進方框
-                from .extract import Word
                 ws = ws + [Word(gb[0], gb[1], gb[2], gb[3], '', 0)]
             page_units.append(Unit(page.no, kind, [(col, ws)]))
-        order = {'F': 0, 'L': 1, 'R': 2}
         # 跨欄行（標題）先放，再左欄、右欄；同欄依 y
-        lines.sort(key=lambda l: (order[l.col] if l.col != 'F' else 0, l.y0) if gutter else l.y0)
+        lines.sort(key=lambda l: (COL_ORDER[l.col] if l.col != 'F' else 0, l.y0) if gutter else l.y0)
         # 跨欄行如果在頁面中間，依 y 排在左欄前面即可（雙欄論文少見）
         lead = _leading(lines, bs)
         kinds = ['text' if is_heading(l, bs, cols) else classify(l, bs, cols) for l in lines]
@@ -389,7 +387,7 @@ def segment(pages):
         # 排序：依第一個框的欄位、y
         def key(u):
             col, ws = u.parts[0]
-            return (order[col] if gutter else 0, min(w.y0 for w in ws))
+            return (COL_ORDER[col] if gutter else 0, min(w.y0 for w in ws))
         page_units.sort(key=key)
         units.extend(page_units)
     # 跨頁接續標記
@@ -400,14 +398,6 @@ def segment(pages):
             if first.x0 - cols[col][0] <= 5:
                 b.cont = True
     return units, cols
-
-
-def _pitch(lines, bs):
-    d = []
-    for col in ('L', 'R', 'F'):
-        ys = sorted(l.y0 for l in lines if l.col == col and abs(l.size - bs) < 0.6)
-        d += [b - a for a, b in zip(ys, ys[1:]) if 0 < b - a < 3 * bs]
-    return sorted(d)[len(d) // 2] if d else bs * 1.2
 
 
 def _leading(lines, bs):

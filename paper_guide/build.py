@@ -8,7 +8,7 @@ import pymupdf
 
 from .annotate import annotate_page
 from .extract import load, render_pages
-from .segment import segment
+from .segment import COL_ORDER, segment
 
 TEMPLATE = os.path.join(os.path.dirname(__file__), 'template.html')
 
@@ -21,7 +21,7 @@ def unit_text(u):
             if w.text:
                 lines.setdefault((col, round(w.base)), []).append(w)
     out = []
-    for key in sorted(lines, key=lambda k: ({'F': 0, 'L': 1, 'R': 2}[k[0]], k[1])):
+    for key in sorted(lines, key=lambda k: (COL_ORDER[k[0]], k[1])):
         out.append(' '.join(w.text for w in sorted(lines[key], key=lambda w: w.x0)))
     text = '\n'.join(out)
     text = re.sub(r'(\w)-\n(\w)', r'\1\2', text)
