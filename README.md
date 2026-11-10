@@ -10,7 +10,7 @@ Turn a paper PDF into a paragraph-by-paragraph reading guide: the original page 
 
 ```
 paper.pdf
- ├─ render    pdftoppm → page images
+ ├─ render    PyMuPDF → page images
  ├─ extract   PyMuPDF → characters with coordinates, font size, weight
  ├─ segment   rule-based segmentation into paragraph / equation / figure / table / heading units,
  │            joining paragraphs that span columns and pages            ← core difficulty
@@ -31,9 +31,10 @@ paper.pdf
 
 ```bash
 python -m venv .venv && .venv/Scripts/activate
-pip install pymupdf                 # also needs poppler's pdftoppm on PATH
+pip install pymupdf                 # PyMuPDF renders the page images too; no external tools needed
 python -m paper_guide build paper.pdf -o out/name --llm ollama:gemma4:12b
 python -m eval.eval_segment paper.pdf eval/<labels>.json   # segmentation accuracy
+python tests/check_regression.py                           # refactor regression check (needs the local PDFs)
 ```
 
 Papers are not included; public demos use openly licensed arXiv papers only.
